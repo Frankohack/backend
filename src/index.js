@@ -3,10 +3,9 @@ const {conectarBaseDatos} = require('./config/mongoDb')
 const router = require('./router/index')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-
 const app = express()
 
-app.listen(8000)
+app.listen(3000)
 console.log("servidor corriendo");
 
 conectarBaseDatos().then(() => {
@@ -14,7 +13,6 @@ conectarBaseDatos().then(() => {
 }).catch((error) => {
     console.log('Error al conectar base de datos conectada correctamente', error)
 })
-
 app.use(cors({
     origin: '*'
 }))

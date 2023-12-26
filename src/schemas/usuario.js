@@ -1,18 +1,26 @@
 const mongoose = require('mongoose');
 
-const usuario = new mongoose.Schema({
-    rut: String,
-    nombres: String,
-    apellidos: String,
-    correo: String,
-    region: String,
-    comuna: String,
-    direccion: String,
-    numero: Number,
-    telefono: Number,
-    contraseña: String
-})
+const mascotaSchema = new mongoose.Schema({
+  nombreMascota: String,
+  tipoAnimal: String,
+});
 
-const Usuario = mongoose.model('usuario', usuario)
+const usuarioSchema = new mongoose.Schema({
+  nombresDueno: String,
+  apellidosDueno: String,
+  mascotas: [mascotaSchema], 
+  nickname: String,
+  contrasena: String,
+  rutPropietario: String,
+  correo: String,
+  region: String,
+  comuna: String,
+  direccion: String,
+  numero: Number,
+  telefono: Number 
+});
 
-module.exports = Usuario
+const Usuario = mongoose.model('Usuario', usuarioSchema);
+
+module.exports = Usuario;
+

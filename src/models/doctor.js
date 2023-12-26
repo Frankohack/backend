@@ -1,14 +1,13 @@
 const Doctor = require('../schemas/doctor')
 
-
-async function crearDoctor(nombres, apellidos, especialidad, region, comuna, hospital, valoracion) {
-    const respuestaGuardadoDoc = await Doctor.create({nombres, apellidos, especialidad, region, comuna, hospital, valoracion})
-    return respuestaGuardadoDoc
+async function createDoctor(nombres, apellidos, correo, especialidad,rut) {
+  const respuestaGuardado = await Doctor.create({nombres,apellidos,correo,especialidad,rut})
+  return respuestaGuardado
 };
 
-async function obtenerDoctor() {
-    const respuestaDoc = await Doctor.find()
-    return respuestaDoc
+async function getDoctors() {
+  const respuesta = await Doctor.find()
+  return respuesta
 }
 
-module.exports = {crearDoctor, obtenerDoctor}
+module.exports = {createDoctor, getDoctors};
