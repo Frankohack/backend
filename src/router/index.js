@@ -1,64 +1,120 @@
+const {createDoctor, getDoctors} = require('../models/doctor')
 const {Router} = require('express')
 const {crearUsuario, obtenerUsuario} = require('../models/usuario')
-const { crearDoctor, obtenerDoctor }= require('../models/doctor')
-
-
-
+const {createReservation, getReservationsWithDetails} = require('../models/reservation')
+const { createTrabajador, obtenerTrabajador } = require('../models/trabajador');
+const {createMedicalRecord, getMedicalRecords} = require('../models/MedicalRecord');
+const {obtenerReservaConDetalles} = require('../controller/reservationController');
+const Usuario = require('../schemas/usuario'); 
 const router = new Router()
+
+router.get('/usuarios/:usuarioId/mascotas', async function(req, res) {
+  const { usuarioId } = req.params;
+
+  try {
+    const usuario = await Usuario.findById(usuarioId).populate('mascotas');
+    res.json(usuario.mascotas);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.get('/', function(req, res){
     res.send('Bienvenido a la API de Franco')
 })
 
-router.post('/crear', async function(req, res){
-    const data = req.body;
-    const {rut, nombres, apellidos, correo, region, comuna, direccion, numero, telefono, contraseña} = data
+router.post('/crear-trabajador', async function(req, res){
+  const data = req.body;
+  const { nombres, apellidos, correo, especialidad, rut, contrasena } = data;
 
-    const respuestaCrear = await crearUsuario(rut, nombres, apellidos, correo, region, comuna, direccion, numero, telefono, contraseña)
-    res.json(respuestaCrear)
-})
+  const respuestaCrear = await createTrabajador(nombres, apellidos, correo, especialidad, rut, contrasena);
+  res.json(respuestaCrear);
+});
 
-// Ruta para verificar el usuario
-router.post('/usuario', async function(req, res) {
-  const { correo, contraseña } = req.body; // Cambia a req.body
+router.post('/trabajador', async function(req, res) {
+  const { correo, contrasena } = req.body; 
 
-  const respuestaObtener = await obtenerUsuario(correo, contraseña);
+  const respuestaObtener = await obtenerTrabajador(correo, contrasena);
 
   if (respuestaObtener) {
-      res.json({ existe: true }); // Usuario encontrado
+      res.json({ existe: true }); 
   } else {  
-      res.json({ existe: false }); // Usuario no encontrado
+      res.json({ existe: false }); 
   }
 });
 
+router.get('/reserva-detallada',obtenerReservaConDetalles);
 
-// Ruta para crear un nuevo doctor
-router.get('/.doc', function(req, res){
-  res.send('Bienvenido a la API de Doctores')
-})
 
-router.post('/.doctor', async function (req, res) {
+router.post('/crear', async function(req, res){
+  const data = req.body;
+  const respuestaCrear = await crearUsuario(data);
+  res.json(respuestaCrear);
+  
+});
+
+
+router.post('/usuario', async function(req, res) {
+  const { correo, contraseña } = req.body;
+
   try {
-    const data = req.body;
-    const { nombres, apellidos, especialidad, region, comuna, hospital, valoracion } = data;
 
-    const nuevoDoctor = await crearDoctor(nombres, apellidos, especialidad, region, comuna, hospital, valoracion);
-    res.json(nuevoDoctor);
+    const usuario = await Usuario.findOne({ correo, contrasena: contraseña });
+
+    if (usuario) {
+      res.json({ existe: true });
+    } else {
+      res.json({ existe: false });
+    }
   } catch (error) {
-    console.error('Error al crear el doctor:', error);
-    res.json({ mensaje: 'Error en el servidor' });
+    console.error('Error al verificar usuario:', error);
+    res.status(500).json({ error: 'Error al verificar el usuario' });
   }
 });
 
-  router.get('/.doctores', async function(req, res) {
-    
-      const respuestaObtenerDoc = await obtenerDoctor();
-    
-      if (respuestaObtenerDoc) {
-          res.json({respuestaObtenerDoc}); // Doctor encontrado
-      } else {  
-          res.json({ existe: false }); // Doctor no encontrado
-      }
-    });
+router.post('/doctors', async function(req, res){
+    const {nombres, apellidos, correo, especialidad, rut} = req.body;
+  
+    const respuestaCrear = await createDoctor(nombres, apellidos, correo, especialidad, rut)
+    res.json(respuestaCrear)
+  })
+  
+  router.get('/doctors', async function(req, res) {
+    const respuestaObtener = await getDoctors();
+  
+    res.json(respuestaObtener);
+  });
+
+  router.post('/reservations', async function(req, res) {
+    const { doctorId, date } = req.body;
+    const respuestaCrear = await createReservation(doctorId, date);
+    res.json(respuestaCrear);
+  });
+  
+  router.get('/reservations-doctor-details', async function(req, res) {
+    try {
+      const userId = req.query.userId; 
+      const reservations = await getReservationsWithDetails(userId);
+      res.json(reservations);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+
+  router.post('/medical-records', async function(req, res){
+  const {animalId, visitDate, description} = req.body;
+
+  const record = await createMedicalRecord(animalId, visitDate, description);
+  res.json(record);
+});
+
+router.get('/medical-records/:animalId', async function(req, res) {
+  const {animalId} = req.params;
+
+  const records = await getMedicalRecords(animalId);
+  res.json(records);
+});
+
 
 module.exports = router;

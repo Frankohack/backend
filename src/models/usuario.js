@@ -1,14 +1,29 @@
-const Usuario = require('../schemas/usuario')
+const Usuario = require('../schemas/usuario'); // Asegúrate de la ruta correcta
 
-async function crearUsuario(rut, nombres, apellidos, correo, region, comuna, direccion, Numero, telefono, contraseña) {
-    const respuestaGuardado = await Usuario.create({rut, nombres, apellidos, correo, region, comuna, direccion, Numero, telefono, contraseña})
-    return respuestaGuardado
-};
+async function crearUsuario(datosUsuario) {
+  const mascotasData = datosUsuario.mascotas;
+  delete datosUsuario.mascotas;
 
+  const usuario = new Usuario(datosUsuario);
 
-async function obtenerUsuario(user, password) {
-    const respuesta = await Usuario.findOne({correo: user, contraseña: password})
-    return respuesta
+  usuario.mascotas = mascotasData.map(mascotaData => ({
+    nombreMascota: mascotaData.nombre,
+    tipoAnimal: mascotaData.tipo,
+  }));
+
+  await usuario.save();
+
+  return usuario;
 }
 
-module.exports = {crearUsuario, obtenerUsuario}
+async function obtenerUsuario(user, password) {
+  try {
+    const respuesta = await Usuario.findOne({ correo: user, contrasena: password }).populate('mascotas');
+    return respuesta;
+  } catch (error) {
+    throw new Error('Error al obtener el usuario');
+  }
+}
+
+module.exports = { crearUsuario, obtenerUsuario };
+
